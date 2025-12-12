@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة الطعام - مطعمنا</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-utensils"></i> مطعمنا</h1>
+            <div class="language-selector">
+                <button class="lang-btn active" data-lang="ar">العربية</button>
+                <button class="lang-btn" data-lang="ckb">کوردی</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="categories-section">
+            <h2 id="categories-title">الفئات</h2>
+            <div class="categories-grid" id="categories-container">
+                <!-- سيتم ملؤه بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <section class="menu-section">
+            <h2 id="menu-title">جميع الأصناف</h2>
+            <div class="menu-grid" id="menu-container">
+                <!-- سيتم ملؤه بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <aside class="order-section">
+            <div class="order-header">
+                <h2 id="order-title"><i class="fas fa-shopping-cart"></i> الطلب</h2>
+                <button id="clear-order" class="clear-btn">مسح الطلب</button>
+            </div>
+            
+            <div class="order-items" id="order-items">
+                <div class="empty-order" id="empty-order">
+                    <i class="fas fa-shopping-basket"></i>
+                    <p id="no-items-text">لا توجد أصناف في الطلب</p>
+                </div>
+                <!-- سيتم ملؤه بواسطة JavaScript -->
+            </div>
+            
+            <div class="order-summary">
+                <div class="total">
+                    <span id="total-text">المجموع:</span>
+                    <span id="total-price">0 د.ع</span>
+                </div>
+                <button id="order-now" class="order-now-btn">
+                    <i class="fas fa-concierge-bell"></i>
+                    <span id="order-now-text">اطلب الآن</span>
+                </button>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2023 مطعمنا. جميع الحقوق محفوظة.</p>
+            <p>هذا الموقع للإطلاع على القائمة وليس للطلب الفعلي</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
