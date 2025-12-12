@@ -24,65 +24,47 @@ const elements = {
     orderNowText: document.getElementById('order-now-text')
 };
 
-// تحميل البيانات من ملف JSON
+// تحميل البيانات من ملف JSON - بدون دوال خطيرة
 async function loadData() {
     try {
-        // إضافة timestamp لمنع التخزين المؤقت
+        // منع التخزين المؤقت
         const timestamp = new Date().getTime();
-        const response = await fetch(`data.json?v=${timestamp}`);
+        const response = await fetch(`./data.json?t=${timestamp}`);
         
         if (!response.ok) {
-            console.log(`⚠️ لم يتم العثور على data.json، استخدام البيانات الافتراضية`);
-            loadDefaultData();
-            return;
+            throw new Error('فشل في تحميل الملف');
         }
         
         const text = await response.text();
         
-        // التحقق من أن الملف ليس فارغاً
-        if (text.trim().length === 0) {
-            console.log("⚠️ ملف data.json فارغ، استخدام البيانات الافتراضية");
-            loadDefaultData();
-            return;
+        if (!text.trim()) {
+            throw new Error('الملف فارغ');
         }
         
-        try {
-            state.menuData = JSON.parse(text);
-            console.log("✅ تم تحميل البيانات من data.json بنجاح");
-        } catch (parseError) {
-            console.log("⚠️ خطأ في تنسيق JSON، استخدام البيانات الافتراضية");
-            loadDefaultData();
-        }
+        state.menuData = JSON.parse(text);
+        initializeApp();
         
     } catch (error) {
-        console.log("⚠️ خطأ في تحميل الملف، استخدام البيانات الافتراضية");
-        loadDefaultData();
+        // استخدام console.log بدلاً من alert داخل setTimeout
+        console.log('استخدام البيانات الافتراضية:', error.message);
+        state.menuData = getDefaultData();
+        initializeApp();
     }
 }
 
-// تحميل البيانات الافتراضية
-function loadDefaultData() {
-    state.menuData = getDefaultData();
-    initializeApp();
-}
-
-// بيانات افتراضية
+// البيانات الافتراضية
 function getDefaultData() {
     return {
         languages: {
             ar: {
                 categories: "الفئات",
-                allItems: "جميع الأصناف",
+                allItems: "جميع الأصناف", 
                 addToOrder: "أضف للطلب",
                 order: "الطلب",
                 total: "المجموع",
                 orderNow: "اطلب الآن",
                 clearOrder: "مسح الطلب",
-                noItems: "لا توجد أصناف في الطلب",
-                items: "الأصناف",
-                price: "السعر",
-                quantity: "الكمية",
-                subtotal: "المجموع الفرعي"
+                noItems: "لا توجد أصناف في الطلب"
             },
             ckb: {
                 categories: "پۆلەکان",
@@ -92,11 +74,7 @@ function getDefaultData() {
                 total: "کۆی گشتی",
                 orderNow: "داواکاری بکە",
                 clearOrder: "سڕینەوەی داواکاری",
-                noItems: "هیچ خواردنێک لە داواکاریدا نییە",
-                items: "خواردنەکان",
-                price: "نرخ",
-                quantity: "ژمارە",
-                subtotal: "کۆی فرعی"
+                noItems: "هیچ خواردنێک لە داواکاریدا نییە"
             }
         },
         categories: [
@@ -351,7 +329,7 @@ function renderMenuItems() {
         elements.menuContainer.appendChild(menuItemElement);
     });
     
-    // إضافة مستمعي الأحداث لأزرار الإضافة
+    // إضافة مستمعي الأحداث
     document.querySelectorAll('.add-to-order').forEach(button => {
         button.addEventListener('click', (e) => {
             const itemId = parseInt(e.target.dataset.itemId);
@@ -360,7 +338,7 @@ function renderMenuItems() {
     });
 }
 
-// إضافة صنف للطلب
+// إضافة للطلب
 function addToOrder(itemId) {
     const menuItem = state.menuData.menuItems.find(item => item.id === itemId);
     
@@ -398,8 +376,6 @@ function updateOrderDisplay() {
             const orderItemElement = document.createElement('div');
             orderItemElement.className = 'order-item';
             
-            const subtotal = orderItem.price * orderItem.quantity;
-            
             orderItemElement.innerHTML = `
                 <div class="order-item-info">
                     <h4>${orderItem[`name_${state.currentLanguage}`]} ${orderItem.icon}</h4>
@@ -418,7 +394,7 @@ function updateOrderDisplay() {
             elements.orderItems.appendChild(orderItemElement);
         });
         
-        // إضافة مستمعي الأحداث للتحكم بالكمية
+        // إضافة الأحداث
         document.querySelectorAll('.decrease').forEach(button => {
             button.addEventListener('click', (e) => {
                 const itemId = parseInt(e.target.dataset.itemId);
@@ -444,7 +420,7 @@ function updateOrderDisplay() {
     updateTotalPrice();
 }
 
-// تحديث كمية صنف في الطلب
+// تحديث الكمية
 function updateQuantity(itemId, change) {
     const orderItem = state.order.find(item => item.id === itemId);
     
@@ -459,13 +435,13 @@ function updateQuantity(itemId, change) {
     }
 }
 
-// إزالة صنف من الطلب
+// إزالة من الطلب
 function removeFromOrder(itemId) {
     state.order = state.order.filter(item => item.id !== itemId);
     updateOrderDisplay();
 }
 
-// تحديث السعر الإجمالي
+// تحديث الإجمالي
 function updateTotalPrice() {
     const total = state.order.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     elements.totalPrice.textContent = `${formatPrice(total)} د.ع`;
@@ -476,11 +452,10 @@ function formatPrice(price) {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// تحديث واجهة المستخدم للغة المختارة
+// تحديث الواجهة للغة
 function updateUIForLanguage() {
     const langData = state.menuData.languages[state.currentLanguage];
     
-    // تحديث النصوص
     elements.categoriesTitle.textContent = langData.categories;
     elements.menuTitle.textContent = langData.allItems;
     elements.orderTitle.innerHTML = `<i class="fas fa-shopping-cart"></i> ${langData.order}`;
@@ -489,81 +464,62 @@ function updateUIForLanguage() {
     elements.orderNowText.textContent = langData.orderNow;
     elements.clearOrderBtn.textContent = langData.clearOrder;
     
-    // إعادة عرض الفئات والقائمة
     renderCategories();
     renderMenuItems();
     updateOrderDisplay();
 }
 
-// إعداد مستمعي الأحداث
+// إعداد الأحداث
 function setupEventListeners() {
-    // أزرار تغيير اللغة
+    // تغيير اللغة
     elements.languageButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             const selectedLanguage = e.target.dataset.lang;
-            
-            // تحديث حالة اللغة
             state.currentLanguage = selectedLanguage;
             
-            // تحديث الأزرار النشطة
             elements.languageButtons.forEach(btn => {
                 btn.classList.remove('active');
             });
             e.target.classList.add('active');
             
-            // تحديث واجهة المستخدم للغة الجديدة
             updateUIForLanguage();
         });
     });
     
-    // زر مسح الطلب
+    // مسح الطلب
     elements.clearOrderBtn.addEventListener('click', () => {
         if (state.order.length > 0) {
-            if (confirm(state.currentLanguage === 'ar' 
-                ? 'هل تريد مسح الطلب بالكامل؟' 
-                : 'دەتەوێت هەموو داواکاریەکە بسڕیتەوە؟')) {
+            const msg = state.currentLanguage === 'ar' 
+                ? 'هل تريد مسح الطلب بالكامل؟'
+                : 'دەتەوێت هەموو داواکاریەکە بسڕیتەوە؟';
+            
+            if (confirm(msg)) {
                 state.order = [];
                 updateOrderDisplay();
             }
         }
     });
     
-    // زر الطلب الآن
+    // تأكيد الطلب
     elements.orderNowBtn.addEventListener('click', () => {
         if (state.order.length === 0) {
-            alert(state.currentLanguage === 'ar' 
-                ? 'الطلب فارغ. يرجى إضافة أصناف أولاً.' 
-                : 'داواکاریەکە بەتاڵە. تکایە سەرەتا خواردن زیاد بکە.');
+            const msg = state.currentLanguage === 'ar'
+                ? 'الطلب فارغ. يرجى إضافة أصناف أولاً.'
+                : 'داواکاریەکە بەتاڵە. تکایە سەرەتا خواردن زیاد بکە.';
+            alert(msg);
             return;
         }
         
         const total = state.order.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        let orderDetails = '';
+        const msg = state.currentLanguage === 'ar'
+            ? `شكراً لك! المجموع: ${formatPrice(total)} دينار\nسيتم تجهيز طلبك قريباً.`
+            : `سوپاس! کۆی گشتی: ${formatPrice(total)} دینار\nداواکاریەکەت بەزوویی ئامادە دەکرێت.`;
         
-        if (state.currentLanguage === 'ar') {
-            orderDetails = 'تفاصيل الطلب:\n';
-            state.order.forEach(item => {
-                orderDetails += `${item.name_ar} × ${item.quantity} = ${formatPrice(item.price * item.quantity)} د.ع\n`;
-            });
-            orderDetails += `\nالمجموع: ${formatPrice(total)} دينار`;
-            
-            alert(`شكراً لك! تم استلام طلبك:\n\n${orderDetails}\n\nسيتم تجهيز طلبك قريباً.`);
-        } else {
-            orderDetails = 'وردەکاری داواکاری:\n';
-            state.order.forEach(item => {
-                orderDetails += `${item.name_ckb} × ${item.quantity} = ${formatPrice(item.price * item.quantity)} د.ع\n`;
-            });
-            orderDetails += `\nکۆی گشتی: ${formatPrice(total)} دینار`;
-            
-            alert(`سوپاس! داواکاریەکەت وەرگیرا:\n\n${orderDetails}\n\nداواکاریەکەت بەزوویی ئامادە دەکرێت.`);
-        }
-        
+        alert(msg);
         state.order = [];
         updateOrderDisplay();
     });
 }
 
-// بدء تحميل البيانات عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-});
+// بدء التطبيق
+document.addEventListener('DOMContentLoaded', loadData);
